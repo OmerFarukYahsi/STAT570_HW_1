@@ -240,3 +240,122 @@ head(commune_level_data)
 ```
 
 ## **Analysing the data**
+
+```{r}
+library(dplyr)
+library(ggplot2)
+library(purrr)
+library(tidyr)
+
+#Let's load the datasets:
+
+commune_level_data <- read.csv("datasets/commune_level_data.csv")
+country_level_data <- read.csv("datasets/country_level_data.csv")
+
+#Let's compute the Laspeyeres index for each commune:
+
+commune_level_data <- commune_level_data %>%
+  group_by(locality) %>%
+  mutate(p0 = ifelse(year == "2010", average_price_nominal_euros, NA)) %>%
+  fill(p0, .direction = "down") %>%
+  mutate(p0_m2 = ifelse(year == "2010", average_price_m2_nominal_euros, NA)) %>%
+  fill(p0_m2, .direction = "down") %>%
+  ungroup() %>%
+  mutate(pl = average_price_nominal_euros/p0*100,
+         pl_m2 = average_price_m2_nominal_euros/p0_m2*100)
+
+
+#Let's also compute it for the whole country:
+
+country_level_data <- country_level_data %>%
+  mutate(p0 = ifelse(year == "2010", average_price_nominal_euros, NA)) %>%
+  fill(p0, .direction = "down") %>%
+  mutate(p0_m2 = ifelse(year == "2010", average_price_m2_nominal_euros, NA)) %>%
+  fill(p0_m2, .direction = "down") %>%
+  mutate(pl = average_price_nominal_euros/p0*100,
+         pl_m2 = average_price_m2_nominal_euros/p0_m2*100)
+
+#Let's compute the rate of cahnge in price on the percentage scale for each commune:
+
+commune_level_data <- commune_level_data %>%
+  group_by(locality) %>%
+  mutate(p0 = ifelse(year == "2010", average_price_nominal_euros, NA)) %>%
+  fill(p0, .direction = "down") %>%
+  mutate(p0_m2 = ifelse(year == "2010", average_price_m2_nominal_euros, NA)) %>%
+  fill(p0_m2, .direction = "down") %>%
+  ungroup() %>%
+  mutate(pl_in_perc = ((average_price_nominal_euros-p0)/p0)*100,
+         pl_m2_in_perc = ((average_price_m2_nominal_euros-p0_m2)/p0_m2)*100)
+
+#Let's also compute it for the whole country:
+
+country_level_data <- country_level_data %>%
+  mutate(p0 = ifelse(year == "2010", average_price_nominal_euros, NA)) %>%
+  fill(p0, .direction = "down") %>%
+  mutate(p0_m2 = ifelse(year == "2010", average_price_m2_nominal_euros, NA)) %>%
+  fill(p0_m2, .direction = "down") %>%
+  mutate(pl_in_perc = ((average_price_nominal_euros-p0)/p0)*100,
+         pl_m2_in_perc = ((average_price_m2_nominal_euros-p0_m2)/p0_m2)*100)
+```
+
+```{r}
+
+#We are going to create a plot for 5 communes and compare the price evolution in the communes
+#to the national price evolution. Let's first list the communes:
+
+communes <- c("Luxembourg",
+              "Esch-sur-Alzette",
+              "Mamer",
+              "Schengen",
+              "Wincrange")
+
+filtered_data <- commune_level_data %>% filter(locality %in% communes)
+
+# Create the line plot
+ggplot(filtered_data, aes(x = year, y = pl_m2, color = locality, group = locality)) +
+  geom_line() +
+  labs(title = "House Price per Square Meter for Selected Communes",
+       x = "Year",
+       y = "House Price per Square Meter") +
+  scale_color_brewer(palette = "Set1") + # Adjust color palette as needed
+  scale_x_continuous(breaks = seq(2010, 2020, by = 2)) + # Set the x-axis breaks
+  scale_y_continuous(breaks = seq(0, 250, by = 20))  # Set the x-axis breaks
+```
+
+bar charts all in one graph without subplot
+
+```{r}
+# Create a grouped bar chart for house price per square meter variation
+ggplot(filtered_data, aes(x = year, y = pl_m2_in_perc, fill = locality)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(title = "House Price per Square Meter Variation by Year for Selected Communes",
+       x = "Year",
+       y = "House Price per Square Meter") +
+  scale_x_continuous(breaks = seq(2010, 2020, by = 2)) + # Set the x-axis 
+  scale_y_continuous(limits = c(0, 150), breaks = seq(0, 150, by = 15)) +
+  theme_minimal() 
+
+```
+
+each bar chart in the individual plots
+
+```{r}
+ggplot(filtered_data, aes(x = year, y = pl_m2_in_perc, fill = as.factor(locality))) +
+  geom_bar(stat = "identity", position = "dodge") +
+  facet_grid(locality ~ ., scales = "free_y") +
+  labs(
+    title = "HP per Square Meter % Variation by Year with respect to 2010 prices",
+    x = "Year",
+    y = "House Price per Square Meter variation in % wrt 2010",
+    fill = "Communes"  # Change the title for the fill legend
+
+  ) +
+  scale_x_continuous(breaks = seq(2010, 2020, by = 1)) +
+  #scale_y_continuous(limits = c(0, 150), breaks = seq(0, 150, by = 15)) +
+  scale_fill_brewer(palette = "Set1") +  # Change color palette, adjust as needed
+  theme_minimal() +
+  theme(legend.position = "right", panel.spacing = unit(0.5, "lines")) +
+  theme(legend.position = "right",
+        strip.text.y = element_blank())  # Removes the facet strip text
+
+```
