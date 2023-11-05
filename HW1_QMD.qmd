@@ -240,3 +240,26 @@ head(commune_level_data)
 ```
 
 ## **Analysing the data**
+
+```{r}
+library(ggplot2)
+# Kutu grafiği ile yıl bazında ortalama fiyatlar
+ggplot(data = commune_level_data, aes(x = year, y = average_price_nominal_euros, fill=year)) +
+  geom_boxplot() +
+  labs(title = "Box Plot of Average Price by Year", x = "Year", y = "Average Price (€)")
+
+```
+
+In year-based box plots, you can identify how the distribution of average prices changed over different years. For this example, it can be seen that average price increases steadily during years.
+
+```{r}
+top_localities <- head(arrange(commune_level_data, desc(n_offers)), 10)
+
+# Çubuk grafik oluştur
+library(ggplot2)
+ggplot(data = top_localities, aes(x = locality, y = n_offers, fill = locality)) +
+  geom_bar(stat = "identity") +
+  labs(title = "En Çok Teklif Alan Top 10 Locality", x = "Locality", y = "Teklif Sayısı") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1) ) +
+  scale_fill_manual(values = rainbow(nrow(top_localities)))
+```
