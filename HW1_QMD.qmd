@@ -1,5 +1,5 @@
 ---
-title: "new_quarto_for_try"
+title: "HW_1 STAT 570"
 author: "Zehra Cebeci, Ömer Faruk Yahşi"
 format: html
 editor: visual
@@ -7,7 +7,7 @@ editor: visual
 
 ## Homework 1
 
-Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
+In this project, our primary objective is to extract data from an Excel file, converting nominal prices to actual values and effectively presenting the findings via informative tables. We will address challenges related to translating Excel data into a "machine-readable format" and navigate the complexities arising from commune name variations and post-2010 mergers. Our focus will be on ensuring data accuracy through detailed validation and normalization processes. At the project's conclusion, the comprehensive analysis of the database will enable us to compare outputs and pinpoint significant data variations and emerging trends.
 
 ## **Housing in Luxembourg**
 
@@ -242,6 +242,8 @@ summary(commune_level_data)
 
 ## **Analysing the data**
 
+We are now going to analyse the data.
+
 ```{r}
 
 library(ggplot2)
@@ -253,8 +255,6 @@ ggplot(data = commune_level_data, aes(x = year, y = average_price_nominal_euros,
 ```
 
 In year-based box plots, you can identify how the distribution of average prices changed over different years. For this example, it can be seen that average price increases steadily during years.
-
-
 
 ```{r}
 
@@ -289,6 +289,7 @@ p1 + p2
 
 
 ```
+
 According to the graphs, while the average price increased continuously over the years, the average offer decreased in 2014 and 2016.
 
 ```{r}
@@ -311,7 +312,10 @@ ggplot(data = top_localities, aes(x = year, y = mean_offers, group=locality, col
 
 
 ```
+
 When the average offers are examined by years, it is seen that the highest offers are in Luxembourg and the lowest offers are in Schengen.
+
+In adittion, we are going to do is compute a Laspeyeres price index. This price index allows us to make comparisons through time; for example, the index at year 2012 measures how much more expensive (or cheaper) housing became relative to the base year (2010). However, since we only have one \'good\' (housing), this index becomes quite simple to compute: it is nothing but the prices at year *t* divided by the prices in 2010 (if we had a basket of goods, we would need to use the Laspeyeres index formula to compute the index at all periods).
 
 ```{r}
 library(dplyr)
@@ -347,6 +351,11 @@ country_level_data <- country_level_data %>%
   mutate(pl = average_price_nominal_euros/p0*100,
          pl_m2 = average_price_m2_nominal_euros/p0_m2*100)
 
+```
+
+Furthermore, we will compute the percentage change in nominal house prices relative to the base year price (2010) to facilitate a clearer and more straightforward comparison of the community's housing price increase from 2010 to 2020.
+
+```{r}
 #Let's compute the rate of cahnge in price on the percentage scale for each commune:
 
 commune_level_data <- commune_level_data %>%
@@ -370,7 +379,7 @@ country_level_data <- country_level_data %>%
          pl_m2_in_perc = ((average_price_m2_nominal_euros-p0_m2)/p0_m2)*100)
 ```
 
-
+After that, we will generate a graphical representation showing the Laspeyeres index values per square meter for the five selected communes, spanning the years from 2010 to 2020.
 
 ```{r}
 
@@ -396,7 +405,9 @@ ggplot(filtered_data, aes(x = year, y = pl_m2, color = locality, group = localit
   scale_y_continuous(breaks = seq(0, 250, by = 20))  # Set the x-axis breaks
 ```
 
-bar charts all in one graph without subplot
+The commune of Luxembourg exhibited the most significant increase in Laspeyeres index values per square meter between 2010 and 2020. Additionally, it's noteworthy that while the index occasionally decreased in the other four communes, Luxembourg consistently showed an upward trend in its index.
+
+On the other hand, bar graphs are useful for comparing different categories or groups, visualizing the distribution of data, and understanding patterns or trends within categorical data sets. Consequently, we employ bar graphs to visually represent the Laspeyres index values per square meter for the five selected communes between 2010 to 2020 years.
 
 ```{r}
 # Create a grouped bar chart for house price per square meter variation
@@ -411,7 +422,7 @@ ggplot(filtered_data, aes(x = year, y = pl_m2_in_perc, fill = locality)) +
 
 ```
 
-each bar chart in the individual plots
+While a single bar graph displaying the index change over the years provides an overview of the general trend, it might be challenging to interpret when multiple data points are presented together. Hence, to offer a clearer interpretation, we created separate bar charts illustrating the percentage change for each commune concerning the nominal house price values in 2010. This approach allows for a more focused and comprehensible analysis of the extent of change for each specific commune.
 
 ```{r}
 ggplot(filtered_data, aes(x = year, y = pl_m2_in_perc, fill = as.factor(locality))) +
@@ -421,7 +432,7 @@ ggplot(filtered_data, aes(x = year, y = pl_m2_in_perc, fill = as.factor(locality
     title = "HP per Square Meter % Variation by Year with respect to 2010 prices",
     x = "Year",
     y = "House Price per Square Meter variation in % wrt 2010",
-    fill = "Communes"  # Change the title for the fill legend
+    fill = "locality"  # Change the title for the fill legend
 
   ) +
   scale_x_continuous(breaks = seq(2010, 2020, by = 1)) +
@@ -434,8 +445,4 @@ ggplot(filtered_data, aes(x = year, y = pl_m2_in_perc, fill = as.factor(locality
 
 ```
 
-
-```{r}
-filtered_data
-```
-
+When analyzing the nominal price values in 2020 relative to those in 2010, the Luxembourg commune experienced the most substantial change, surpassing 100% and reaching nearly 130%. Following closely, the Mamer commune displayed an increase of over 90%. In contrast, the Schengen Commune exhibited the lowest percentage increase, approximately 25%, compared to house prices in 2010. It is worth mentioning that between 2018 and 2020, there was a significant decrease of approximately 15% in house prices within the Schengen area.
